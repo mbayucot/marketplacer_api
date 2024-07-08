@@ -46,6 +46,7 @@ jobs:
       - name: Setup database
         run: |
           cp config/database.yml.ci config/database.yml
+          cp config/initializers/devise.ci.rb config/initializers/devise.rb
           bin/rails db:create db:schema:load RAILS_ENV=test
 
       - name: Run tests
