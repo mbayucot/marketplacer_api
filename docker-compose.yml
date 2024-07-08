@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres:12
+    container_name: marketplacer_postgres
+    env_file: .env.local
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: marketplacer_api
+    command: bash -c "rm -f tmp/pids/server.pid && /usr/bin/supervisord -n"
+    env_file: .env.local
+    ports:
+      - "4000:3000"
+    volumes:
+      - .:/api
+    depends_on:
+      - db
+
+volumes:
+  postgres:

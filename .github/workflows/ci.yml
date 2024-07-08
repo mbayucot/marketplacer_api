@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:12
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: marketplacer_api_test
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: mypassword
+        options: >-
+          --health-cmd "pg_isready -U myuser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.2
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev
+          bundle install
+
+      - name: Setup database
+        run: |
+          cp config/database.yml.ci config/database.yml
+          bin/rails db:create db:schema:load RAILS_ENV=test
+
+      - name: Run tests
+        env:
+          RAILS_ENV: test
+        run: |
+          bundle exec rspec
